@@ -18,7 +18,7 @@ body {
 #loading {
   position: fixed;
   top: 50vh;
-  left 50vw;
+  left: 50vw;
   background-color: white;
 }
 

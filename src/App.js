@@ -1,4 +1,6 @@
-class MainComponent extends React.Component {
+import React, { Component } from 'react';
+
+class App extends Component {
   constructor(props) {
     super(props);
     
@@ -185,7 +187,4 @@ class MainComponent extends React.Component {
   )
 }
 
-ReactDOM.render(
-  <MainComponent />,
-  document.getElementById('mount')
-);
+export default App;
