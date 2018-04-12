@@ -11,6 +11,7 @@ class App extends Component {
     
     this.handleStaticMode = this.handleStaticMode.bind(this);
     this.handleBlastMode = this.handleBlastMode.bind(this);
+    this.handleWipeMode = this.handleWipeMode.bind(this);
     this.handleFollowMode = this.handleFollowMode.bind(this);
     this.handleClearCanvas = this.handleClearCanvas.bind(this);
     this.handleClickCanvas = this.handleClickCanvas.bind(this);
@@ -31,7 +32,55 @@ class App extends Component {
   }
   
   handleFollowMode(e) {
-    this.followCosmicWaveGenerator(this.canvas.current, e.clientX, e.clientY)
+    switch(this.state.clickMode) {
+      case 'sin':
+        this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
+        break;
+      case 'circle':
+        this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.state.penSize * 10, this.state.penSize * 10);
+        break;
+      default:
+        this.cosmicSquareGenerator(this.canvas.current, e.clientX, e.clientY);
+    }
+  }
+
+  handleWipeMode() {
+    this.setState({mode: 'wipe'}, () => {
+      const canvas = this.canvas.current;
+      const context = canvas.getContext('2d');
+      const mode = this.state.mode;
+      let x = 0;
+      let y = 0;
+  
+      const timer = setInterval(
+        frame,
+        1000 / 60,
+        this.state.penSize * 10
+      );
+  
+      function frame(wipeSize) {
+        const canRun = mode === 'wipe';
+  
+        if (!canRun) {
+          clearInterval(timer);
+        } else {
+          if (x <= canvas.width && canRun) {
+            context.fillStyle = '#FFFFFF';
+            context.fillRect(x, y, wipeSize, wipeSize);
+            x += wipeSize;
+          }
+          if (x > canvas.width && y <= canvas.height && canRun) {
+            x = 0;
+            y += wipeSize;
+            context.fillStyle = '#FFFFFF';
+            context.fillRect(x, y, wipeSize, wipeSize);
+          }
+          if (y > canvas.height) {
+            clearInterval(timer);
+          }
+        }
+      };
+    });
   }
   
   handleStaticMode() {
@@ -70,7 +119,7 @@ class App extends Component {
         this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
         break;
       case 'circle':
-        this.clickCosmicWaveGenerator(this.canvas.current, e.clientX, e.clientY)
+        this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.canvas.current.width, this.canvas.current.height);
         break;
       default:
         break;
@@ -106,7 +155,7 @@ class App extends Component {
     }
   }
   
-  followCosmicWaveGenerator(canvas, x, y) {
+  cosmicSquareGenerator(canvas, x, y) {
     const context = canvas.getContext('2d');
     const colorWidth = this.state.colorWidth;
     const penSize = this.state.penSize;
@@ -128,14 +177,14 @@ class App extends Component {
     }
   }
   
-  clickCosmicWaveGenerator(canvas, x, y) {
+  cosmicCircleWaveGenerator(canvas, x, y, width, height) {
     const context = canvas.getContext('2d');
     const colorWidth = this.state.colorWidth;
     const pixelSize = this.state.pixelSize;
     const penSize = this.state.penSize;
     
-    for (var i = 0; i < canvas.width; i++) {
-      for (var j = 0; j < canvas.height; j++) {
+    for (var i = x - width; i < width; i++) {
+      for (var j = y - height; j < height; j++) {
         const distanceFromOrigin = (Math.sqrt((i-x)*(i-x) + ((j-y)*(j-y))));
         const distanceAfterChange = (Math.sqrt((i-x-penSize)*(i-x-penSize) + ((j-y)*(j-y))));
         const sinResult = Math.sin(distanceFromOrigin * .1);
@@ -156,6 +205,7 @@ class App extends Component {
       <div id="selectors">
         <button type="button" onClick={this.handleStaticMode}>Square Tile Pattern</button>
         <button type="button" onClick={this.handleBlastMode}>Sin Blast Pattern</button>
+        <button type="button" onClick={this.handleWipeMode}>Non-Blocking Wipe</button>
         <button type="button" onClick={() => this.setState({mode: 'follow'})}>Follow Mouse</button>
         <label> Click mode: {this.state.clickMode}
           <input type="radio" value="sin" checked={'sin' === this.state.clickMode} onChange={this.handleClickModeChange} />
