@@ -13,6 +13,7 @@ class App extends Component {
     this.handleBlastMode = this.handleBlastMode.bind(this);
     this.handleWipeMode = this.handleWipeMode.bind(this);
     this.handleFollowMode = this.handleFollowMode.bind(this);
+    this.handleWavePoolMode = this.handleWavePoolMode.bind(this);
     this.handleClearCanvas = this.handleClearCanvas.bind(this);
     this.handleClickCanvas = this.handleClickCanvas.bind(this);
     this.handleWidthChange = this.handleWidthChange.bind(this);
@@ -28,20 +29,63 @@ class App extends Component {
       pixelSize: 1,
       penSize: 10,
       clickMode: 'sin',
+      running: 0,
+      maxRunning: 10,
+      randomWaveGenerator: () => {},
     };
+  }
+
+  generateRandomX() {
+    return Math.floor(Math.random() * this.canvas.current.width);
+  }
+
+  generateRandomY(){ 
+    return Math.floor(Math.random() * this.canvas.current.height);
+  }
+
+  handleWavePoolMode(e, start) {
+    e.persist();
+
+    if (start) {
+      this.setState(
+        {
+          mode: 'waves',
+          randomWaveGenerator: setInterval(
+            this.cosmicCircleWaveGenerator.bind(this),
+            500,
+            this.canvas.current, 
+            null,
+            null,
+            this.canvas.current.width, 
+            this.canvas.current.height,
+            true
+          )
+        }
+      );
+    } else {
+      this.setState({mode: null},
+        () => clearInterval(this.state.randomWaveGenerator)
+      );
+    }
   }
   
   handleFollowMode(e) {
-    switch(this.state.clickMode) {
-      case 'sin':
-        this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
-        break;
-      case 'circle':
-        this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.state.penSize * 10, this.state.penSize * 10);
-        break;
-      default:
-        this.cosmicSquareGenerator(this.canvas.current, e.clientX, e.clientY);
-    }
+    e.persist();
+      this.setState(
+        {running: this.state.running + 1},
+        () => {
+          switch(this.state.clickMode) {
+            case 'sin':
+              this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
+              break;
+            case 'circle':
+              this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.canvas.current.width, this.canvas.current.height);
+              break;
+            default:
+              this.cosmicSquareGenerator(this.canvas.current, e.clientX, e.clientY);
+          }
+        }
+      )
   }
 
   handleWipeMode() {
@@ -114,16 +158,21 @@ class App extends Component {
   }
   
   handleClickCanvas(e) {
-    switch(this.state.clickMode) {
-      case 'sin':
-        this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
-        break;
-      case 'circle':
-        this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.canvas.current.width, this.canvas.current.height);
-        break;
-      default:
-        break;
+    e.persist();
+    this.setState({mode: 'click', running: true},
+    () => {
+      switch(this.state.clickMode) {
+        case 'sin':
+          this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
+          break;
+        case 'circle':
+          this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.canvas.current.width, this.canvas.current.height);
+          break;
+        default:
+          break;
+      }
     }
+  )
   }
   
   handleWidthChange(e) {
@@ -167,7 +216,6 @@ class App extends Component {
   cosmicSinGenerator(canvas, x, y, xDelta, yDelta) {
     const context = canvas.getContext('2d');
     const colorWidth = this.state.colorWidth;
-    const pixelSize = this.state.pixelSize;
     
     for (var i = y; i <= y + yDelta; i++) {
       for (var j = x; j <= x + xDelta; j++) {
@@ -177,27 +225,47 @@ class App extends Component {
     }
   }
   
-  cosmicCircleWaveGenerator(canvas, x, y, width, height) {
+  cosmicCircleWaveGenerator(canvas, x, y, width, height, random = false) {
+    const react = this;
     const context = canvas.getContext('2d');
-    const colorWidth = this.state.colorWidth;
-    const pixelSize = this.state.pixelSize;
-    const penSize = this.state.penSize;
+    var i = 0;
+    var j = 0;
+
+    if (random) {
+      x = react.generateRandomX();
+      y = react.generateRandomY();
+    }
     
-    for (var i = x - width; i < width; i++) {
-      for (var j = y - height; j < height; j++) {
-        const distanceFromOrigin = (Math.sqrt((i-x)*(i-x) + ((j-y)*(j-y))));
-        const distanceAfterChange = (Math.sqrt((i-x-penSize)*(i-x-penSize) + ((j-y)*(j-y))));
-        const sinResult = Math.sin(distanceFromOrigin * .1);
-        const blueVal = Math.floor(((sinResult * 255) / 2) + (255 / 2)) + distanceFromOrigin % colorWidth;
-        const redVal = Math.floor(((Math.sin(distanceAfterChange * .1) * 255) / 2) + (255 / 2)) % colorWidth;
-        const greenVal = Math.floor(distanceAfterChange) % colorWidth;
-        const sWidth = window.innerWidth;
-        
-        context.fillStyle = 'rgb(' + Math.floor(redVal) + ', ' + Math.floor(greenVal) + ', ' + Math.floor(blueVal) + ')';
-         
-        context.fillRect(i * pixelSize, j * pixelSize, pixelSize, pixelSize);
+    function drawCircle() {
+      const colorWidth = react.state.colorWidth;
+      const penSize = Number(react.state.penSize);
+      const pixelSize = Number(react.state.pixelSize);
+      const batchSize = Math.floor((width / 2) + (height / 2));
+      const canRun = react.state.mode !== null;
+
+      if (i > width && j <= height) {
+       i = 0;
+       j += penSize;
+      }
+      if (i <= width && canRun) {
+        for (let batch = 0; batch < batchSize; batch++) {
+          const distanceFromOrigin = (Math.sqrt((i-x)*(i-x) + ((j-y)*(j-y))));
+          const distanceAfterChange = (Math.sqrt((i-x)*(i-x) + ((j-y)*(j-y))) * pixelSize);
+          const sinResult = Math.sin(distanceFromOrigin * .1);
+          const blueVal = Math.floor(((sinResult * 255) / 2) + (255 / 2)) + distanceFromOrigin % colorWidth;
+          const redVal = Math.floor(((Math.sin(distanceAfterChange * .1) * 255) / 2) + (255 / 2)) % colorWidth;
+          const greenVal = Math.floor(distanceAfterChange) % colorWidth;
+          
+          context.fillStyle = 'rgb(' + Math.floor(redVal) + ', ' + Math.floor(greenVal) + ', ' + Math.floor(blueVal) + ')';
+          
+          context.fillRect(i, j, penSize, penSize);
+          i += penSize;
+        }
+        requestAnimationFrame(drawCircle);
       }
     }
+    
+    requestAnimationFrame(drawCircle);
   }
   
   render = ()  => (
@@ -206,6 +274,8 @@ class App extends Component {
         <button type="button" onClick={this.handleStaticMode}>Square Tile Pattern</button>
         <button type="button" onClick={this.handleBlastMode}>Sin Blast Pattern</button>
         <button type="button" onClick={this.handleWipeMode}>Non-Blocking Wipe</button>
+        <button type="button" onClick={(e) => this.handleWavePoolMode(e, true)}>Enable Wave Pool</button>
+        <button type="button" onClick={(e) => this.handleWavePoolMode(e, false)}>Disable Wave Pool</button>
         <button type="button" onClick={() => this.setState({mode: 'follow'})}>Follow Mouse</button>
         <label> Click mode: {this.state.clickMode}
           <input type="radio" value="sin" checked={'sin' === this.state.clickMode} onChange={this.handleClickModeChange} />
