@@ -4,11 +4,11 @@ import './App.css';
 class App extends Component {
   constructor(props) {
     super(props);
-    
+
     this.state = this.getInitState();
     // Setup a reference to DOM
     this.canvas = React.createRef();
-    
+
     this.handleStaticMode = this.handleStaticMode.bind(this);
     this.handleBlastMode = this.handleBlastMode.bind(this);
     this.handleWipeMode = this.handleWipeMode.bind(this);
@@ -17,11 +17,12 @@ class App extends Component {
     this.handleClearCanvas = this.handleClearCanvas.bind(this);
     this.handleClickCanvas = this.handleClickCanvas.bind(this);
     this.handleWidthChange = this.handleWidthChange.bind(this);
+    this.handleBatchChange = this.handleBatchChange.bind(this);
     this.handlePixelChange = this.handlePixelChange.bind(this);
     this.handlePenChange = this.handlePenChange.bind(this);
     this.handleClickModeChange = this.handleClickModeChange.bind(this);
   }
-  
+
   getInitState() {
     return {
       mode: null,
@@ -31,15 +32,16 @@ class App extends Component {
       clickMode: 'sin',
       running: 0,
       maxRunning: 10,
-      randomWaveGenerator: () => {},
+      randomWaveGenerator: () => { },
+      batchSize: Math.floor((window.innerWidth / 2) + (window.innerHeight / 2))
     };
   }
 
-  generateRandomX() {
+  generateRandomXCoordinate() {
     return Math.floor(Math.random() * this.canvas.current.width);
   }
 
-  generateRandomY(){ 
+  generateRandomYCoordinate() {
     return Math.floor(Math.random() * this.canvas.current.height);
   }
 
@@ -53,58 +55,58 @@ class App extends Component {
           randomWaveGenerator: setInterval(
             this.cosmicCircleWaveGenerator.bind(this),
             500,
-            this.canvas.current, 
+            this.canvas.current,
             null,
             null,
-            this.canvas.current.width, 
+            this.canvas.current.width,
             this.canvas.current.height,
             true
           )
         }
       );
     } else {
-      this.setState({mode: null},
+      this.setState({ mode: null },
         () => clearInterval(this.state.randomWaveGenerator)
       );
     }
   }
-  
+
   handleFollowMode(e) {
     e.persist();
-      this.setState(
-        {running: this.state.running + 1},
-        () => {
-          switch(this.state.clickMode) {
-            case 'sin':
-              this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
-              break;
-            case 'circle':
-              this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.canvas.current.width, this.canvas.current.height);
-              break;
-            default:
-              this.cosmicSquareGenerator(this.canvas.current, e.clientX, e.clientY);
-          }
+    this.setState(
+      { running: this.state.running + 1 },
+      () => {
+        switch (this.state.clickMode) {
+          case 'sin':
+            this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
+            break;
+          case 'circle':
+            this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.canvas.current.width, this.canvas.current.height);
+            break;
+          default:
+            this.cosmicSquareGenerator(this.canvas.current, e.clientX, e.clientY);
         }
-      )
+      }
+    )
   }
 
   handleWipeMode() {
-    this.setState({mode: 'wipe'}, () => {
+    this.setState({ mode: 'wipe' }, () => {
       const canvas = this.canvas.current;
       const context = canvas.getContext('2d');
       const mode = this.state.mode;
       let x = 0;
       let y = 0;
-  
+
       const timer = setInterval(
         frame,
         1000 / 60,
         this.state.penSize * 10
       );
-  
+
       function frame(wipeSize) {
         const canRun = mode === 'wipe';
-  
+
         if (!canRun) {
           clearInterval(timer);
         } else {
@@ -126,16 +128,16 @@ class App extends Component {
       };
     });
   }
-  
+
   handleStaticMode() {
-    this.setState({mode: 'static'},
+    this.setState({ mode: 'static' },
       this.staticCosmicWaveGenerator(this.canvas.current)
     );
   }
-  
+
   handleBlastMode(e) {
     e.persist();
-    this.setState({mode: 'blast'},
+    this.setState({ mode: 'blast' },
       () => {
         const canvas = this.canvas.current;
         for (var x = 0; x < canvas.width; x++) {
@@ -146,51 +148,55 @@ class App extends Component {
       }
     );
   }
-  
+
   handleClearCanvas() {
     this.setState(this.getInitState(),
       this.canvas.current.getContext('2d').clearRect(
-      0,
-      0,
-      this.canvas.current.width,
-      this.canvas.current.height
-    ))
+        0,
+        0,
+        this.canvas.current.width,
+        this.canvas.current.height
+      ))
   }
-  
+
   handleClickCanvas(e) {
     e.persist();
-    this.setState({mode: 'click', running: true},
-    () => {
-      switch(this.state.clickMode) {
-        case 'sin':
-          this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
-          break;
-        case 'circle':
-          this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.canvas.current.width, this.canvas.current.height);
-          break;
-        default:
-          break;
+    this.setState({ mode: 'click', running: true },
+      () => {
+        switch (this.state.clickMode) {
+          case 'sin':
+            this.cosmicSinGenerator(this.canvas.current, e.clientX, e.clientY, 100, 50);
+            break;
+          case 'circle':
+            this.cosmicCircleWaveGenerator(this.canvas.current, e.clientX, e.clientY, this.canvas.current.width, this.canvas.current.height);
+            break;
+          default:
+            break;
+        }
       }
-    }
-  )
+    )
   }
-  
+
   handleWidthChange(e) {
-    this.setState({colorWidth: e.target.value});
+    this.setState({ colorWidth: e.target.value });
   }
-  
+
+  handleBatchChange(e) {
+    this.setState({ batchSize: e.target.value });
+  }
+
   handlePixelChange(e) {
-    this.setState({pixelSize: e.target.value});
+    this.setState({ pixelSize: e.target.value });
   }
-  
+
   handlePenChange(e) {
-    this.setState({penSize: e.target.value});
+    this.setState({ penSize: e.target.value });
   }
-  
+
   handleClickModeChange(e) {
-    this.setState({clickMode: e.target.value});
+    this.setState({ clickMode: e.target.value });
   }
-  
+
   staticCosmicWaveGenerator(canvas) {
     const context = canvas.getContext('2d');
     const colorWidth = this.state.colorWidth;
@@ -203,20 +209,20 @@ class App extends Component {
       }
     }
   }
-  
+
   cosmicSquareGenerator(canvas, x, y) {
     const context = canvas.getContext('2d');
     const colorWidth = this.state.colorWidth;
     const penSize = this.state.penSize;
 
     context.fillStyle = 'rgb(' + Math.floor(x % colorWidth) + ', ' + Math.floor(y % colorWidth) + ', ' + Math.floor((x * y) % colorWidth) + ')';
-    context.fillRect(x, y, penSize,penSize);
+    context.fillRect(x, y, penSize, penSize);
   }
 
   cosmicSinGenerator(canvas, x, y, xDelta, yDelta) {
     const context = canvas.getContext('2d');
     const colorWidth = this.state.colorWidth;
-    
+
     for (var i = y; i <= y + yDelta; i++) {
       for (var j = x; j <= x + xDelta; j++) {
         context.fillStyle = 'rgb(' + Math.floor(i % colorWidth) + ', ' + Math.floor(j % colorWidth) + ', ' + Math.floor((i * j) % colorWidth) + ')';
@@ -224,7 +230,7 @@ class App extends Component {
       }
     }
   }
-  
+
   cosmicCircleWaveGenerator(canvas, x, y, width, height, random = false) {
     const react = this;
     const context = canvas.getContext('2d');
@@ -232,43 +238,47 @@ class App extends Component {
     var j = 0;
 
     if (random) {
-      x = react.generateRandomX();
-      y = react.generateRandomY();
+      x = react.generateRandomXCoordinate();
+      y = react.generateRandomYCoordinate();
     }
-    
+
     function drawCircle() {
       const colorWidth = react.state.colorWidth;
       const penSize = Number(react.state.penSize);
       const pixelSize = Number(react.state.pixelSize);
-      const batchSize = Math.floor((width / 2) + (height / 2));
+      const batchSize = react.state.batchSize;
       const canRun = react.state.mode !== null;
 
       if (i > width && j <= height) {
-       i = 0;
-       j += penSize;
+        // Reset the x coordinate iterations and iterate the y coordinate
+        i = 0;
+        j += penSize;
       }
       if (i <= width && canRun) {
+        // Calculate the positions of (batchSize) number of rectangles
         for (let batch = 0; batch < batchSize; batch++) {
-          const distanceFromOrigin = (Math.sqrt((i-x)*(i-x) + ((j-y)*(j-y))));
-          const distanceAfterChange = (Math.sqrt((i-x)*(i-x) + ((j-y)*(j-y))) * pixelSize);
+          const distanceFromOrigin = (Math.sqrt((i - x) * (i - x) + ((j - y) * (j - y))));
+          const distanceAfterChange = (Math.sqrt((i - x) * (i - x) + ((j - y) * (j - y))) * pixelSize);
           const sinResult = Math.sin(distanceFromOrigin * .1);
           const blueVal = Math.floor(((sinResult * 255) / 2) + (255 / 2)) + distanceFromOrigin % colorWidth;
           const redVal = Math.floor(((Math.sin(distanceAfterChange * .1) * 255) / 2) + (255 / 2)) % colorWidth;
           const greenVal = Math.floor(distanceAfterChange) % colorWidth;
-          
+
           context.fillStyle = 'rgb(' + Math.floor(redVal) + ', ' + Math.floor(greenVal) + ', ' + Math.floor(blueVal) + ')';
-          
+
           context.fillRect(i, j, penSize, penSize);
           i += penSize;
         }
+        // Rectangles are rendered, recurse on next frame
         requestAnimationFrame(drawCircle);
       }
     }
-    
+
+    // Start generating pattern
     requestAnimationFrame(drawCircle);
   }
-  
-  render = ()  => (
+
+  render = () => (
     <div>
       <div id="selectors">
         <button type="button" onClick={this.handleStaticMode}>Square Tile Pattern</button>
@@ -276,20 +286,23 @@ class App extends Component {
         <button type="button" onClick={this.handleWipeMode}>Non-Blocking Wipe</button>
         <button type="button" onClick={(e) => this.handleWavePoolMode(e, true)}>Enable Wave Pool</button>
         <button type="button" onClick={(e) => this.handleWavePoolMode(e, false)}>Disable Wave Pool</button>
-        <button type="button" onClick={() => this.setState({mode: 'follow'})}>Follow Mouse</button>
+        <button type="button" onClick={() => this.setState({ mode: 'follow' })}>Follow Mouse</button>
         <label> Click mode: {this.state.clickMode}
           <input type="radio" value="sin" checked={'sin' === this.state.clickMode} onChange={this.handleClickModeChange} />
           <input type="radio" value="circle" checked={'circle' === this.state.clickMode} onChange={this.handleClickModeChange} />
         </label>
         <button type="button" onClick={this.handleClearCanvas}>Clear</button>
-        <label> Color Width: {this.state.colorWidth}
+        <label> Color Width: {Number(this.state.colorWidth).toPrecision(3)}
           <input type="range" step="1" value={this.state.colorWidth} min="0" max="255" onChange={this.handleWidthChange}></input>
         </label>
-        <label> Pixel Size: {this.state.pixelSize}
+        <label> Pixel Size: {Number(this.state.pixelSize).toPrecision(2)}
           <input type="range" step=".1" value={this.state.pixelSize} min="1" max="10" onChange={this.handlePixelChange}></input>
         </label>
-        <label> Pen Size: {this.state.penSize}
+        <label> Pen Size: {Number(this.state.penSize).toPrecision(3)}
           <input type="range" step="1" value={this.state.penSize} min="1" max="100" onChange={this.handlePenChange}></input>
+        </label>
+        <label> Pre-render Size: {Number(this.state.batchSize).toPrecision(4)}
+          <input type="range" step="1" value={this.state.batchSize} min="1" max={Math.floor((window.innerHeight + window.innerWidth))} onChange={this.handleBatchChange}></input>
         </label>
       </div>
       <canvas
@@ -301,7 +314,7 @@ class App extends Component {
         onMouseMove={
           this.state.mode === 'follow'
             ? (e) => this.handleFollowMode(e)
-            : () => {}
+            : () => { }
         }
       ></canvas>
     </div>

@@ -24,4 +24,5 @@ body {
 
 label {
   min-width: 25px;
+  font-family: monospace;
 }
