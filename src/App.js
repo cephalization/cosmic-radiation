@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import Particle from './drawables/Particle'
 import './App.css';
 
 class App extends Component {
@@ -6,6 +7,7 @@ class App extends Component {
     super(props);
 
     this.state = this.getInitState();
+    this.renderQueue = [];
     // Setup a reference to DOM
     this.canvas = React.createRef();
 
@@ -21,6 +23,10 @@ class App extends Component {
     this.handlePixelChange = this.handlePixelChange.bind(this);
     this.handlePenChange = this.handlePenChange.bind(this);
     this.handleClickModeChange = this.handleClickModeChange.bind(this);
+    this.handleParticleBeam = this.handleParticleBeam.bind(this);
+    this.addParticle = this.addParticle.bind(this);
+    this.eventLoop = this.eventLoop.bind(this);
+    this.toggleEventLoop = this.toggleEventLoop.bind(this)
   }
 
   getInitState() {
@@ -33,7 +39,8 @@ class App extends Component {
       running: 0,
       maxRunning: 10,
       randomWaveGenerator: () => { },
-      batchSize: Math.floor((window.innerWidth / 2) + (window.innerHeight / 2))
+      batchSize: Math.floor((window.innerWidth / 2) + (window.innerHeight / 2)),
+      loopRunning: false,
     };
   }
 
@@ -278,12 +285,55 @@ class App extends Component {
     requestAnimationFrame(drawCircle);
   }
 
+  handleParticleBeam() {
+    this.toggleEventLoop();
+  }
+
+  toggleEventLoop() {
+    if (this.eventInterval == null) {
+      this.eventInterval = setInterval(
+        requestAnimationFrame,
+        1000 / 60,
+        this.eventLoop
+      )
+    } else {
+      clearInterval(this.eventInterval);
+      this.eventInterval = null;
+    }
+  }
+
+  addParticle() {
+    this.renderQueue.push(
+      new Particle(
+        0,
+        Math.random() * this.canvas.current.height + 10,
+        this.canvas.current
+      )
+    )
+  }
+
+  eventLoop() {
+    // Clone the queue and pre-render one update for each item
+    const queue = [...this.renderQueue];
+    
+    let renderEvent = queue.pop();
+    while(renderEvent) {
+      if(renderEvent && renderEvent.update()) {
+        // Add the event back to the queue, it has more work to do next time
+        this.renderQueue.push(renderEvent);
+      }
+      renderEvent = queue.pop();
+    }
+  }
+
   render = () => (
     <div>
       <div id="selectors">
         <button type="button" onClick={this.handleStaticMode}>Square Tile Pattern</button>
         <button type="button" onClick={this.handleBlastMode}>Sin Blast Pattern</button>
         <button type="button" onClick={this.handleWipeMode}>Non-Blocking Wipe</button>
+        <button type="button" onClick={this.handleParticleBeam}>Toggle particle beams</button>
+        <button type="button" onClick={this.addParticle}>Add particle to queue</button>
         <button type="button" onClick={(e) => this.handleWavePoolMode(e, true)}>Enable Wave Pool</button>
         <button type="button" onClick={(e) => this.handleWavePoolMode(e, false)}>Disable Wave Pool</button>
         <button type="button" onClick={() => this.setState({ mode: 'follow' })}>Follow Mouse</button>
