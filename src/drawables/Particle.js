@@ -22,7 +22,7 @@ class Particle {
     const x = this.x; const y = this.y;
     this.draw(x, y);
 
-    if (this.x < window.innerWidth - this.size) {
+    if (this.x < this.canvas.width - this.size) {
       // Increment the X position of the particle if it can still fit
       // on the display
       this.x += this.size;

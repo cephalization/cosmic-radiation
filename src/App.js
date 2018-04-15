@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Particle from './drawables/Particle'
+import SinBeam from './drawables/SinBeam';
 import './App.css';
 
 class App extends Component {
@@ -25,6 +26,7 @@ class App extends Component {
     this.handleClickModeChange = this.handleClickModeChange.bind(this);
     this.handleParticleBeam = this.handleParticleBeam.bind(this);
     this.addParticle = this.addParticle.bind(this);
+    this.addSin = this.addSin.bind(this);
     this.eventLoop = this.eventLoop.bind(this);
     this.toggleEventLoop = this.toggleEventLoop.bind(this)
   }
@@ -312,18 +314,34 @@ class App extends Component {
     )
   }
 
+  addSin() {
+    this.renderQueue.push(
+      new SinBeam(
+        0,
+        Math.random() * this.canvas.current.height,
+        this.canvas.current
+      )
+    )
+  }
+
   eventLoop() {
     // Clone the queue and pre-render one update for each item
     const queue = [...this.renderQueue];
+    // Clear out the class queue here, it will now only contain new user items
+    this.renderQueue = [];
+    const nextUpdates = [];
     
     let renderEvent = queue.pop();
     while(renderEvent) {
       if(renderEvent && renderEvent.update()) {
-        // Add the event back to the queue, it has more work to do next time
-        this.renderQueue.push(renderEvent);
+        // Add the event to the new queue, it has more work to do next time
+        nextUpdates.push(renderEvent);
       }
       renderEvent = queue.pop();
     }
+
+    // Combine the current class queue and the 'new' queue
+    this.renderQueue = [...this.renderQueue, ...nextUpdates];
   }
 
   render = () => (
@@ -332,8 +350,9 @@ class App extends Component {
         <button type="button" onClick={this.handleStaticMode}>Square Tile Pattern</button>
         <button type="button" onClick={this.handleBlastMode}>Sin Blast Pattern</button>
         <button type="button" onClick={this.handleWipeMode}>Non-Blocking Wipe</button>
-        <button type="button" onClick={this.handleParticleBeam}>Toggle particle beams</button>
+        <button type="button" onClick={this.handleParticleBeam}>Toggle Event Queue</button>
         <button type="button" onClick={this.addParticle}>Add particle to queue</button>
+        <button type="button" onClick={this.addSin}>Add sinbeam to queue</button>
         <button type="button" onClick={(e) => this.handleWavePoolMode(e, true)}>Enable Wave Pool</button>
         <button type="button" onClick={(e) => this.handleWavePoolMode(e, false)}>Disable Wave Pool</button>
         <button type="button" onClick={() => this.setState({ mode: 'follow' })}>Follow Mouse</button>
