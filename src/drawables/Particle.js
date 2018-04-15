@@ -20,7 +20,7 @@ class Particle {
     // We have to clone these because this.x and this.y can change
     // before the particle is drawn
     const x = this.x; const y = this.y;
-    requestAnimationFrame(() => this.draw(x, y));
+    this.draw(x, y);
 
     if (this.x < window.innerWidth - this.size) {
       // Increment the X position of the particle if it can still fit
