@@ -1,3 +1,5 @@
+import { scaleBetween } from '../Util';
+
 class BubbleParty {
   constructor(x = 0, y = 0, canvas) {
     this.x = Math.floor(x);
@@ -26,26 +28,42 @@ class BubbleParty {
   update() {
     const x = this.x; const y = this.y; const lastX = this.lastX; const lastY = this.lastY;
     this.draw(x, y, lastX, lastY);
-    
+
     if (Math.floor(this.x) > this.canvas.width ||
         Math.floor(this.x) < 0 ||
         Math.floor(this.y) > this.canvas.height ||
         Math.floor(this.y) < 0
     ) {
-      this.velocity = (this.velocity * -1) + .1;
+      this.velocity = ((this.velocity) * -.99);
+      this.x = lastX;
+      this.y = lastY;
     }
-    if (this.x < this.canvas.width) {
-      this.lastX = this.x;
-      this.lastY = this.y;
-      this.x += this.velocity;
-      this.y = Math.floor((this.initY) * Math.sin(this.x * .01)) + (this.initY);
-    }
+
+    this.lastX = this.x;
+    this.lastY = this.y;
+    this.x += this.velocity;
+    this.y = Math.floor((this.initY) * Math.sin(this.x * .01)) + (this.initY);
+
     return true;
   }
 
   draw(x = this.x, y = this.x, lastX, lastY) {
     // console.log('drawing at', x, y)
-    this.context.fillStyle = 'rgb(' + Math.floor((x - Math.abs(this.velocity))) % 255 + ', ' + Math.floor(y - Math.abs(this.velocity)) % 255 + ', ' + Math.floor(x - lastX) % 255 + ')';
+    const red = x <= (this.canvas.width / 3)
+      ? scaleBetween(x, 75, 255, 0, this.canvas.width / 3)
+      : 0;
+      // : 255 - Math.abs(x - (this.canvas.width / 3)) % 255; TODO: Implement smooth distance based grading
+    const green = (x >= (this.canvas.width / 3) && x <= (this.canvas.width * (2/3)))
+      ? scaleBetween(x, 75, 255, (this.canvas.width / 3), (this.canvas.width * (2/3)))
+      : 0;
+      // : 255 - Math.abs(x - (this.canvas.width * (2/3))) % 255; TODO: Implement smooth distance based grading
+    const blue = x >= (this.canvas.width * (2/3))
+      ? scaleBetween(x, 75, 255, (this.canvas.width * (2/3)), this.canvas.width)
+      : 0;
+      // : 255 - Math.abs(x - (this.canvas.width * (2/3))) % 255; TODO: Implement smooth distance based grading
+
+    this.context.fillStyle = 'rgb(' + Math.floor(red) + ', ' + Math.floor(green) + ', ' + Math.floor(blue) + ')';
+    this.context.globalCompositeOperation = 'lighter';
     this.context.lineWidth = Math.abs(this.size * 100);
     this.context.beginPath();
     this.context.moveTo(x, y);

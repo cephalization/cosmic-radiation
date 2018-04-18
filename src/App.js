@@ -334,7 +334,7 @@ class App extends Component {
     // Clear out the class queue here, it will now only contain new user items
     this.renderQueue = [];
     const nextUpdates = [];
-    
+
     let renderEvent = queue.pop();
     while(renderEvent) {
       if(renderEvent && renderEvent.update()) {
