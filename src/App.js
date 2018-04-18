@@ -160,12 +160,15 @@ class App extends Component {
 
   handleClearCanvas() {
     this.setState(this.getInitState(),
-      this.canvas.current.getContext('2d').clearRect(
-        0,
-        0,
-        this.canvas.current.width,
-        this.canvas.current.height
-      ))
+      () => {
+        this.canvas.current.getContext('2d').clearRect(
+          0,
+          0,
+          this.canvas.current.width,
+          this.canvas.current.height
+        );
+        this.renderQueue = [];
+      })
   }
 
   handleClickCanvas(e) {
@@ -318,8 +321,8 @@ class App extends Component {
     for (let i = 0; i < 100; i++){
       this.renderQueue.push(
         new BubbleParty(
-          Math.random() * this.canvas.current.width,
-          Math.random() * this.canvas.current.height,
+          Math.random() * (this.canvas.current.width),
+          Math.random() * (this.canvas.current.height),
           this.canvas.current
         )
       )
