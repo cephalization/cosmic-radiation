@@ -1,19 +1,33 @@
 import { scaleBetween, distance } from '../Util';
 
-class BubbleParty {
-  constructor(x = 0, y = 0, canvas) {
-    this.x = Math.floor(x);
-    this.y = Math.floor(y);
+class Bubble {
+  constructor(
+    canvas,
+    size = Math.random() - .5,
+    x = null,
+    y = null,
+    velocity = null,
+    slowOnCollision = true
+  ) {
+    this.x = x == null
+      ? Math.random() * (canvas.width)
+      : Math.floor(x);
+    this.y = y == null
+      ? Math.random() * (canvas.height)
+      : Math.floor(y);
     this.lastX = this.x;
     this.lastY = this.y;
     this.initY = this.y;
     this.canvas = canvas;
     this.context = this.canvas.getContext('2d');
-    this.size = Math.random() - .5;
-    this.velocity = this.size * 2;
+    this.size = size;
+    this.velocity = velocity == null
+      ? this.size * 2
+      : velocity;
     if (this.size === 0) {
       this.size = .5;
     }
+    this.slowOnCollision = slowOnCollision
 
     this.update = this.update.bind(this);
     this.draw = this.draw.bind(this);
@@ -26,8 +40,16 @@ class BubbleParty {
     if (Math.floor(this.x) > this.canvas.width ||
         Math.floor(this.x) < 0
     ) {
-      this.velocity = ((this.velocity) * -.8);
-      this.x = lastX;
+      this.velocity = this.slowOnCollision
+        ? this.velocity * -.8
+        : this.velocity * -1
+
+      if (this.x > this.canvas.width) {
+        this.x = this.canvas.width;
+      }
+      if (this.x < 0) {
+        this.x = 0;
+      }
     }
 
     this.lastX = this.x;
@@ -39,25 +61,18 @@ class BubbleParty {
   }
 
   draw(x = this.x, y = this.x, lastX, lastY) {
-    // console.log('drawing at', x, y)
     const red = x <= (this.canvas.width / 3)
       ? scaleBetween(x, 100, 255, 0, this.canvas.width / 3)
-      // : 0;
-      // : 255 - Math.abs(x - (this.canvas.width / 3)) % 255; TODO: Implement smooth distance based grading
       : distance(255, distance(x, (this.canvas.width / 3)), false);
     const green = (x >= (this.canvas.width / 3) && x <= (this.canvas.width * (2/3)))
       ? scaleBetween(x, 100, 255, (this.canvas.width / 3), (this.canvas.width * (2/3)))
-      // : 0;
-      // : 255 - Math.abs(x - (this.canvas.width * (2/3))) % 255; TODO: Implement smooth distance based grading
       : distance(255, distance((this.canvas.width * (2/3)), x), false);
     const blue = x >= (this.canvas.width * (2/3))
       ? scaleBetween(x, 150, 255, (this.canvas.width * (2/3)), this.canvas.width)
       : 0;
-      // : 255 - Math.abs(x - (this.canvas.width * (2/3))) % 255; TODO: Implement smooth distance based grading
-      // : distance(255, distance(x, this.canvas.width), false);
 
     this.context.fillStyle = 'rgb(' + Math.floor(red) + ', ' + Math.floor(green) + ', ' + Math.floor(blue) + ')';
-    this.context.globalCompositeOperation = 'lighter';
+    this.context.globalCompositeOperation = 'darken';
     this.context.lineWidth = Math.abs(this.size * 100);
     this.context.beginPath();
     this.context.moveTo(Math.floor(x), Math.floor(y));
@@ -67,4 +82,4 @@ class BubbleParty {
   }
 }
 
-export default BubbleParty;
+export default Bubble;

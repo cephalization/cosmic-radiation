@@ -17,3 +17,12 @@ export const distance = (p1, p2, allowNegative = true) => {
 
     return dis;
 }
+
+
+export const generateRandomXCoordinate = (canvas) => (
+    Math.floor(Math.random() * canvas.width)
+);
+
+export const generateRandomYCoordinate = (canvas) => (
+    Math.floor(Math.random() * canvas.height)
+);

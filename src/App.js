@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import Particle from './drawables/Particle'
-import BubbleParty from './drawables/BubbleParty';
+import Bubble from './drawables/Bubble';
+import Radiation from './Radiation';
 import './App.css';
 
 class App extends Component {
@@ -317,16 +318,15 @@ class App extends Component {
     )
   }
 
-  addBubbleParty() {
+  addBubbleParty(canvas) {
+    const bubbles = [];
     for (let i = 0; i < 100; i++){
-      this.renderQueue.push(
-        new BubbleParty(
-          Math.random() * (this.canvas.current.width),
-          Math.random() * (this.canvas.current.height),
-          this.canvas.current
-        )
+      bubbles.push(
+        new Bubble(canvas, 2)
       )
     }
+
+    return bubbles;
   }
 
   eventLoop() {
@@ -352,48 +352,49 @@ class App extends Component {
   }
 
   render = () => (
-    <div>
-      <div id="selectors">
-        <button type="button" onClick={this.handleStaticMode}>Square Tile Pattern</button>
-        <button type="button" onClick={this.handleBlastMode}>Sin Blast Pattern</button>
-        <button type="button" onClick={this.handleWipeMode}>Non-Blocking Wipe</button>
-        <button type="button" onClick={this.handleParticleBeam}>Toggle Event Queue</button>
-        <button type="button" onClick={this.addParticle}>Add particle to queue</button>
-        <button type="button" onClick={this.addBubbleParty}>Add bubble party to queue</button>
-        <button type="button" onClick={(e) => this.handleWavePoolMode(e, true)}>Enable Wave Pool</button>
-        <button type="button" onClick={(e) => this.handleWavePoolMode(e, false)}>Disable Wave Pool</button>
-        <button type="button" onClick={() => this.setState({ mode: 'follow' })}>Follow Mouse</button>
-        <label> Click mode: {this.state.clickMode}
-          <input type="radio" value="sin" checked={'sin' === this.state.clickMode} onChange={this.handleClickModeChange} />
-          <input type="radio" value="circle" checked={'circle' === this.state.clickMode} onChange={this.handleClickModeChange} />
-        </label>
-        <button type="button" onClick={this.handleClearCanvas}>Clear</button>
-        <label> Color Width: {Number(this.state.colorWidth).toPrecision(3)}
-          <input type="range" step="1" value={this.state.colorWidth} min="0" max="255" onChange={this.handleWidthChange}></input>
-        </label>
-        <label> Pixel Size: {Number(this.state.pixelSize).toPrecision(2)}
-          <input type="range" step=".1" value={this.state.pixelSize} min="1" max="10" onChange={this.handlePixelChange}></input>
-        </label>
-        <label> Pen Size: {Number(this.state.penSize).toPrecision(3)}
-          <input type="range" step="1" value={this.state.penSize} min="1" max="100" onChange={this.handlePenChange}></input>
-        </label>
-        <label> Pre-render Size: {Number(this.state.batchSize).toPrecision(4)}
-          <input type="range" step="1" value={this.state.batchSize} min="1" max={Math.floor((window.innerHeight + window.innerWidth))} onChange={this.handleBatchChange}></input>
-        </label>
-      </div>
-      <canvas
-        id="canvas"
-        ref={this.canvas}
-        height={window.innerHeight + 'px'}
-        width={window.innerWidth + 'px'}
-        onClick={this.handleClickCanvas}
-        onMouseMove={
-          this.state.mode === 'follow'
-            ? (e) => this.handleFollowMode(e)
-            : () => { }
-        }
-      ></canvas>
-    </div>
+    // <div>
+    //   <div id="selectors">
+    //     <button type="button" onClick={this.handleStaticMode}>Square Tile Pattern</button>
+    //     <button type="button" onClick={this.handleBlastMode}>Sin Blast Pattern</button>
+    //     <button type="button" onClick={this.handleWipeMode}>Non-Blocking Wipe</button>
+    //     <button type="button" onClick={this.handleParticleBeam}>Toggle Event Queue</button>
+    //     <button type="button" onClick={this.addParticle}>Add particle to queue</button>
+    //     <button type="button" onClick={this.addBubbleParty}>Add bubble party to queue</button>
+    //     <button type="button" onClick={(e) => this.handleWavePoolMode(e, true)}>Enable Wave Pool</button>
+    //     <button type="button" onClick={(e) => this.handleWavePoolMode(e, false)}>Disable Wave Pool</button>
+    //     <button type="button" onClick={() => this.setState({ mode: 'follow' })}>Follow Mouse</button>
+    //     <label> Click mode: {this.state.clickMode}
+    //       <input type="radio" value="sin" checked={'sin' === this.state.clickMode} onChange={this.handleClickModeChange} />
+    //       <input type="radio" value="circle" checked={'circle' === this.state.clickMode} onChange={this.handleClickModeChange} />
+    //     </label>
+    //     <button type="button" onClick={this.handleClearCanvas}>Clear</button>
+    //     <label> Color Width: {Number(this.state.colorWidth).toPrecision(3)}
+    //       <input type="range" step="1" value={this.state.colorWidth} min="0" max="255" onChange={this.handleWidthChange}></input>
+    //     </label>
+    //     <label> Pixel Size: {Number(this.state.pixelSize).toPrecision(2)}
+    //       <input type="range" step=".1" value={this.state.pixelSize} min="1" max="10" onChange={this.handlePixelChange}></input>
+    //     </label>
+    //     <label> Pen Size: {Number(this.state.penSize).toPrecision(3)}
+    //       <input type="range" step="1" value={this.state.penSize} min="1" max="100" onChange={this.handlePenChange}></input>
+    //     </label>
+    //     <label> Pre-render Size: {Number(this.state.batchSize).toPrecision(4)}
+    //       <input type="range" step="1" value={this.state.batchSize} min="1" max={Math.floor((window.innerHeight + window.innerWidth))} onChange={this.handleBatchChange}></input>
+    //     </label>
+    //   </div>
+    //   <canvas
+    //     id="canvas"
+    //     ref={this.canvas}
+    //     height={window.innerHeight + 'px'}
+    //     width={window.innerWidth + 'px'}
+    //     onClick={this.handleClickCanvas}
+    //     onMouseMove={
+    //       this.state.mode === 'follow'
+    //         ? (e) => this.handleFollowMode(e)
+    //         : () => { }
+    //     }
+    //   ></canvas>
+    // </div>
+    <Radiation particles={[this.addBubbleParty]} />
   )
 }
 
