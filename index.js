@@ -5,11 +5,9 @@ import Radiation from './src/Radiation';
 import Bubble from './src/drawables/Bubble';
 import Particle from './src/drawables/Particle';
 
-const Particles = {
+export const Particles = {
     Bubble,
     Particle,
 };
-
-export const Particles;
 
 export default Radiation;
