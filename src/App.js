@@ -394,7 +394,7 @@ class App extends Component {
     //     }
     //   ></canvas>
     // </div>
-    <Radiation particles={[this.addBubbleParty]} />
+    <Radiation particles={[this.addBubbleParty]} onClick={() => alert('woohoo!')}/>
   )
 }
 

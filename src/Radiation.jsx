@@ -37,7 +37,7 @@ class Radiation extends Component {
 
   /**
    * Generate initial state object
-   * 
+   *
    * @returns initial state object
    */
   getInitState() {
@@ -121,14 +121,15 @@ class Radiation extends Component {
     this.renderQueue = [...this.renderQueue, ...nextUpdates];
   }
 
-  render = () => (
-    <canvas
-      id="canvas"
-      ref={this.canvas}
-      height={`${this.state.height}px`}
-      width={`${this.state.width}px`}
-    >
-    </canvas>
+  render = ({particles, ...props} = this.props) => (
+      <canvas
+        id="canvas"
+        ref={this.canvas}
+        height={`${this.state.height}px`}
+        width={`${this.state.width}px`}
+        {...props}
+      >
+      </canvas>
   )
 }
 
